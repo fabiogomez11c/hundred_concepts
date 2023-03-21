@@ -4,8 +4,9 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-torch = "*"
-numpy = "*"
+torch = "2.0.0"
+numpy = "1.24.2"
+opencv-python = "*"
 
 [dev-packages]
 
