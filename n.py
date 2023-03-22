@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.utils.data import Dataset, DataLoader
+from torchvision import datasets, transforms
 
 
 # class Model
@@ -12,7 +14,7 @@ class Model(nn.Module):
         super().__init__()
         # flatten
         self.flatten = nn.Flatten()
-        self.linear = nn.Linear(112*112, 2)
+        self.linear = nn.Linear(28*28, 10)
     
     def forward(self, x):
         x = self.flatten(x)
@@ -21,18 +23,28 @@ class Model(nn.Module):
         return x
 
 
-# Create a 512 x 512 matrix with random values
-img = np.random.random((112, 112)).astype(np.float32) * 255
-img_tensor = torch.from_numpy(img)
+# load fashion mnist dataset
+images = datasets.FashionMNIST(
+    root="data",
+    train=True,
+    download=True,
+    transform=transforms.ToTensor(),
+)
 
-# Create a model
+# IMAGE PROCESSING
+# Create a 512 x 512 matrix with random values
+# img = np.random.random((112, 112)).astype(np.float32) * 255
+# img_tensor = torch.from_numpy(img)
+img_tensor = images[0][0]
+
+# MODEL INSTANCE AND FORWARD PASS
 model = Model()
 # pass the image through the model
-output = model(img_tensor.unsqueeze(0))
+output = model(img_tensor)
 print(output)
 
 # plot the image with matplotlib
-plt.imshow(img)
+plt.imshow(img_tensor.detach().numpy().squeeze(), cmap='gray')
 plt.show()
 
 
