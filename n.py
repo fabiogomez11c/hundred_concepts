@@ -1,17 +1,39 @@
 import numpy as np
 import cv2 as cv
+import matplotlib.pyplot as plt
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+
+# class Model
+class Model(nn.Module):
+    def __init__(self):
+        super().__init__()
+        # flatten
+        self.flatten = nn.Flatten()
+        self.linear = nn.Linear(112*112, 2)
+    
+    def forward(self, x):
+        x = self.flatten(x)
+        x = self.linear(x)
+        x = F.softmax(x, dim=1)
+        return x
 
 
 # Create a 512 x 512 matrix with random values
-img = np.random.randint(0, 256, (512, 512), np.uint8)
+img = np.random.random((112, 112)).astype(np.float32) * 255
+img_tensor = torch.from_numpy(img)
 
-# Create an image of opencv
-image = cv.merge([img, img, img])
+# Create a model
+model = Model()
+# pass the image through the model
+output = model(img_tensor.unsqueeze(0))
+print(output)
 
-# Show the image
-cv.imshow('image', image)
-cv.waitKey(0)
-cv.destroyAllWindows()
+# plot the image with matplotlib
+plt.imshow(img)
+plt.show()
 
 
 

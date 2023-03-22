@@ -7,8 +7,11 @@ name = "pypi"
 torch = "2.0.0"
 numpy = "1.24.2"
 opencv-python = "*"
+matplotlib = "*"
 
 [dev-packages]
+jupyter = "*"
+notebook = "*"
 
 [requires]
 python_version = "3.9"
