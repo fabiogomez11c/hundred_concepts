@@ -7,8 +7,8 @@ import torch
 import numpy as np
 import torch.nn as nn
 
-image = torch.tensor(np.random.rand(1, 7, 7), dtype=torch.float32)
-conv = nn.Conv2d(in_channels=1, out_channels=5, kernel_size=3)
+image = torch.tensor(np.random.rand(3, 7, 7), dtype=torch.float32)
+conv = nn.Conv2d(in_channels=3, out_channels=5, kernel_size=3)
 activation = conv(image.unsqueeze(0))
 
 """
