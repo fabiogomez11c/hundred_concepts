@@ -1,7 +1,13 @@
-import numpy as np
+"""
+How is the behavior of the weights during the training of a neural network?
+In this example we will see how the weights of a neural network are updated during the training.
+We will use the Fashion MNIST dataset and a simple neural network with one linear layer.
+We will plot the weights of the linear layer after each batch of training.
+We will see how the weights are updated during the training.
+TODO: add the bias
+"""
+
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
-import cv2
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -78,7 +84,7 @@ for i in range(10):
     im_list.append(ax[i // 5, i % 5].imshow(model.linear.weight[i].reshape(28, 28).detach().numpy(), animated=True, cmap="gray"))
     # set title of the image
     ax[i // 5, i % 5].set_title(labels_map[i])
-plt.show()
+plt.show(block=False)
 
 
 # create the animation
@@ -95,3 +101,4 @@ for i in range(1000):
     fig.canvas.flush_events()
 
     print(f"{i} Loss: {loss_batch}")
+
