@@ -7,7 +7,7 @@ The idea of this script is to test several ideas about convolutions:
 
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 from torchvision import datasets, transforms
 import cv2
 import numpy as np
@@ -15,15 +15,18 @@ from typing import List
 
 
 # import the cifar dataset
-cifar = datasets.CIFAR10(
+cifar_train = datasets.CIFAR10(
     root="data",
     train=True,
     download=True,
     transform=transforms.ToTensor(),
 )
 
+cifar_train, cifar_val = random_split(cifar_train, [0.8, 0.2])
+
 # create the data loader
-cifar_dataloader = DataLoader(cifar, batch_size=32, shuffle=True)
+cifar_dataloader = DataLoader(cifar_train, batch_size=32, shuffle=True)
+cifar_val_dataloader = DataLoader(cifar_val, batch_size=32, shuffle=False)
 
 # create the model
 class BaseModel(nn.Module):
@@ -52,6 +55,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 def train_model(model, dataloader, criterion, optimizer, epochs=5):
     for epoch in range(epochs):
         epoch_loss = 0
+        accuracy = 0
         for batch, (image, label) in enumerate(dataloader):
             # forward pass
             pred = model(image)
@@ -64,15 +68,28 @@ def train_model(model, dataloader, criterion, optimizer, epochs=5):
 
             # update the loss
             epoch_loss += loss.item()
+            # update the accuracy
+            accuracy += (pred.argmax(dim=1) == label).sum().item()
+        
+        # compute metrics for validation dataset
+        val_loss = 0
+        val_accuracy = 0
+        for batch, (image, label) in enumerate(cifar_val_dataloader):
+            with torch.no_grad():
+                pred = model(image)
+                loss = criterion(pred, label)
+                val_loss += loss.item()
+                val_accuracy += (pred.argmax(dim=1) == label).sum().item()
         
         # print the loss
-        print(f"Epoch {epoch+1} loss: {epoch_loss/len(dataloader)}")
+        print(f"Epoch {epoch+1} loss: {epoch_loss/len(dataloader):.4f} val_loss: {val_loss/len(cifar_val_dataloader):.4f} accuracy: {accuracy/len(dataloader.dataset):.4f} val_accuracy: {val_accuracy/len(cifar_val_dataloader.dataset):.4f}")
+
 
 train_model(model, cifar_dataloader, criterion, optimizer, epochs=5)
 
 
 # plot with opencv
-test_image = cifar[0][0]
+test_image = cifar_train[0][0]
 relu = nn.ReLU()
 with torch.no_grad():
     conv1_numpy = relu(model.conv1(test_image))
@@ -113,22 +130,25 @@ def v_concat_after_h_concat(conv_result: List[np.array]):
 
 # concatenate the images
 cv_image = v_concat_after_h_concat([conv1_numpy, conv2_numpy])
+# resize the cv_image to 124x600
+cv_image = cv2.resize(cv_image, (600, 124))
+
+# convert the test_image to numpy and gray
+test_image = test_image.permute(1, 2, 0).detach().numpy()
+# convert the image to gray
+test_image = cv2.cvtColor(test_image, cv2.COLOR_RGB2GRAY)
+# resize the image to 124x124
+test_image = cv2.resize(test_image, (124, 124))
+
+# create a big gray background of 800x800
+gray = np.zeros((800, 800), np.float32)
+
+# put the cv_image in the center of the gray image
+gray[100:100+cv_image.shape[0], 100:100+cv_image.shape[1]] = cv_image
+# put the tets image below the cv_image plus 100 pixels
+gray[100+cv_image.shape[0]+100:100+cv_image.shape[0]+100+test_image.shape[0], 100:100+test_image.shape[1]] = test_image
 
 # plot the image
-cv2.imshow("conv1", cv_image)
+cv2.imshow("conv1", gray)
 cv2.waitKey(0)
-
-# TODO compute accuracy
-# TODO create a validation dataset
-# TODO train more epochs
-
-
-
-
-
-
-
-
-
-
 
