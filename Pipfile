@@ -4,13 +4,15 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-torch = "2.0.0"
-torchvision = "*"
-torchaudio = "*"
 numpy = "1.24.2"
 opencv-python = "*"
 matplotlib = "*"
 jupyterlab = "*"
+torch = "*"
+torchvision = "*"
+torchaudio = "*"
+seaborn = "*"
+scikit-learn = "*"
 
 [dev-packages]
 jupyter = "*"
