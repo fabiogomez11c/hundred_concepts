@@ -3,6 +3,7 @@
 import torch
 import torch.nn as nn
 import requests, zipfile, io, unicodedata, string
+from typing import Dict
 
 from torch.utils.data import DataLoader, Dataset
 
@@ -37,3 +38,38 @@ for zip_path in z.namelist():
             ]
             namge_language_data[lang] = lang_names
         print(lang, ": ", len(lang_names))
+
+
+class LanguageNameDataset(Dataset):
+    def __init__(self, language_dict: Dict, vocabulary: Dict):
+        self.label_names = [x for x in language_dict.keys()]
+        self.data = []
+        self.labels = []
+        self.vocabulary = vocabulary
+        for y, language in enumerate(self.label_names):
+            for name in language_dict[language]:
+                self.data.append(name)
+                self.labels.append(y)
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx: int):
+        name = self.data[idx]
+        label = self.labels[idx]
+        label_vec = torch.tensor([label], dtype=torch.long)
+
+        return self.string2integervec(name), label_vec
+
+    def string2integervec(self, input_string: str):
+        """
+        Convert string (name) to an tensor of integers according to the vocab.
+        In this case, each word is the token.
+        """
+        T = len(input_string)
+        name_vec = torch.zeros(T, dtype=torch.long)
+
+        for pos, character in enumerate(input_string):
+            name_vec[pos] = self.vocabulary[character]
+
+        return name_vec
