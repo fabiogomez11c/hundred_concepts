@@ -91,3 +91,43 @@ test_dataloader = DataLoader(test_data, batch_size=1, shuffle=False)
 with torch.no_grad():
     input_sequence = torch.tensor([0, 1, 1, 0, 2], dtype=torch.long)
     embd = nn.Embedding(3, 5)
+    x_seq = embd(input_sequence)  # here is clear that embedding is a look up table
+
+
+class LastTimeStep(nn.Module):
+    def __init__(self, rnn_layers=1, bidirectional=False):
+        super(LastTimeStep, self).__init__()
+        self.rnn_layers = rnn_layers
+        if bidirectional:
+            self.num_directions = 2
+        else:
+            self.num_directions = 1
+
+    def forward(self, fwd_input):
+        rnn_output = fwd_input[0]
+        last_step = fwd_input[1]
+
+        if type(last_step) == tuple:
+            last_step = last_step[0]
+
+        batch_size = last_step.shape[1]
+        last_step = last_step.view(self.rnn_layers, self.num_directions, batch_size, -1)
+        last_step = last_step[self.rnn_layers - 1]
+        last_step = last_step.permute(1, 0, 2)
+        return last_step.reshape(batch_size, -1)
+
+
+D = 64
+vocab_size = len(all_letters)
+hidden_nodes = 256
+classes = len(dataset.label_names)
+
+first_rnn = nn.Sequential(
+    nn.Embedding(vocab_size, D),
+    nn.RNN(D, hidden_nodes, batch_first=True),
+    LastTimeStep(),
+    nn.Linear(hidden_nodes, classes),
+)
+
+result = first_rnn(train_data[0][0].unsqueeze(0))
+loss_fn = nn.CrossEntropyLoss()
