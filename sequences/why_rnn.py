@@ -73,3 +73,21 @@ class LanguageNameDataset(Dataset):
             name_vec[pos] = self.vocabulary[character]
 
         return name_vec
+
+
+dataset = LanguageNameDataset(namge_language_data, alphabet)
+train_data, test_data = torch.utils.data.random_split(
+    dataset, (len(dataset) - 1000, 1000)
+)
+train_data, val_data = torch.utils.data.random_split(
+    train_data, (len(train_data) - 2000, 2000)
+)
+
+train_dataloader = DataLoader(train_data, batch_size=1, shuffle=True)
+val_dataloader = DataLoader(val_data, batch_size=1, shuffle=False)
+test_dataloader = DataLoader(test_data, batch_size=1, shuffle=False)
+
+# checking embedding usage
+with torch.no_grad():
+    input_sequence = torch.tensor([0, 1, 1, 0, 2], dtype=torch.long)
+    embd = nn.Embedding(3, 5)
