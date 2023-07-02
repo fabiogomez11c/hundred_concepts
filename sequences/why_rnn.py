@@ -4,6 +4,8 @@ import torch
 import torch.nn as nn
 import requests, zipfile, io, unicodedata, string
 from typing import Dict
+from idlmam import train_simple_network
+from sklearn.metrics import accuracy_score
 
 from torch.utils.data import DataLoader, Dataset
 
@@ -57,7 +59,7 @@ class LanguageNameDataset(Dataset):
     def __getitem__(self, idx: int):
         name = self.data[idx]
         label = self.labels[idx]
-        label_vec = torch.tensor([label], dtype=torch.long)
+        label_vec = torch.tensor([label], dtype=torch.long)[0]
 
         return self.string2integervec(name), label_vec
 
@@ -129,5 +131,18 @@ first_rnn = nn.Sequential(
     nn.Linear(hidden_nodes, classes),
 )
 
-result = first_rnn(train_data[0][0].unsqueeze(0))
 loss_fn = nn.CrossEntropyLoss()
+results = train_simple_network(
+    model=first_rnn,
+    loss_func=loss_fn,
+    train_loader=train_dataloader,
+    test_loader=val_dataloader,
+    score_funcs={"accuracy": accuracy_score},
+    device="cuda",
+    epochs=5,
+    checkpoint_file=None,
+    prev_results=None,
+    checkpoint_dict=None,
+    checkpoint_every_x=1,
+    problem_type="classification",
+)
