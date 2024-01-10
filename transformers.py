@@ -3,6 +3,15 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 
+def scaled_dot_product(key, value, query) -> torch.Tensor:
+    """
+    Computes the scaled dot product attention.
+    """
+    out = (query @ key.T)/np.sqrt(key.size()[1])
+    out = F.softmax(out, dim=-1)
+    out = out @ value
+    return out
+
 
 class Transformer(nn.Module):
 
@@ -20,9 +29,7 @@ class Transformer(nn.Module):
         k = self.k(emb)
         v = self.v(emb)
 
-        out = (q @ k.T)/np.sqrt(k.size()[1]) # is this correct?
-        out = F.softmax(out, dim=-1) # √ 
-        out = out @ v # not so sure about the final interpretation of this
+        out = scaled_dot_product(key=k, value=v, query=q)
 
         return out
 
