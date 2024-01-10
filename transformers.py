@@ -4,14 +4,6 @@ import torch.nn.functional as F
 import numpy as np
 
 
-ids = torch.randint(0, 10, (3,))
-
-# embedding(vocab size, embed dim)
-emb_layer = nn.Embedding(10, 5)
-x = emb_layer(ids) # gradient included
-
-
-
 class Transformer(nn.Module):
 
     def __init__(self):
